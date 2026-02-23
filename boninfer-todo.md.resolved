@@ -1,0 +1,679 @@
+# bonInfer Pvt Ltd — Production-Ready Implementation TODO
+_Tech: React (JS only) · Vite · Tailwind CSS · shadcn/ui · Bun_
+_Derived strictly from: [boninfer-website-blueprint.md](file:///C:/Users/saina/xml_code/boninfer-website-blueprint.md) + [boninfer-claude-code-prompts.md](file:///C:/Users/saina/xml_code/boninfer-claude-code-prompts.md)_
+
+---
+
+## High-Level Implementation Phases
+
+| Phase | Name | Priority |
+|-------|------|----------|
+| 1 | Foundation | P0 |
+| 2 | Routing & Layout | P0 |
+| 3 | Navigation | P0 |
+| 4 | Scrollytelling Homepage (6 Acts) | P0 |
+| 5 | AI Studio | P0 |
+| 6 | Governance Hub | P0 |
+| 7 | Services & Work | P0 |
+| 8 | Performance & Accessibility | P0 |
+
+---
+
+## Phase 1: Foundation
+
+### 1.1 Project Scaffold
+- [ ] Run `bun create vite@latest . -- --template react` (JS, not TS)
+- [ ] Confirm no `.ts` / `.tsx` files were generated; rename any to `.js` / `.jsx`
+- [ ] Verify `vite.config.js` (not `.ts`)
+- [ ] Delete `src/App.css` and `src/assets/react.svg` (clean state)
+
+### 1.2 Tailwind CSS
+- [ ] Install: `bun add -d tailwindcss postcss autoprefixer`
+- [ ] Run: `bunx tailwindcss init -p`
+- [ ] Set `content` array in `tailwind.config.js` to `["./index.html", "./src/**/*.{js,jsx}"]`
+- [ ] Add Tailwind directives to `src/styles/globals.css`
+
+### 1.3 Custom Design Tokens (Tailwind Theme Extension)
+- [ ] Extend `tailwind.config.js` with custom colors:
+  ```js
+  colors: {
+    sand: { 50: '#faf9f5', 200: '#e8e6dc' },
+    ink: { 950: '#141413' },
+    pulse: { 500: '#ff7a66' },
+  }
+  ```
+- [ ] Extend with custom font families:
+  ```js
+  fontFamily: {
+    display: ['"Playfair Display"', 'Georgia', 'serif'],
+    body: ['Inter', 'system-ui', 'sans-serif'],
+    accent: ['Brockmann', 'Inter', 'sans-serif'],
+  }
+  ```
+- [ ] Extend with animation utilities: `fade-in`, `slide-up`, `scale-in`
+
+### 1.4 CSS Variables & Fonts
+- [ ] In `src/styles/globals.css`, add shadcn/ui CSS variable block:
+  ```css
+  :root {
+    --background: 250 249 245;   /* sand-50 */
+    --foreground: 20 20 19;      /* ink-950 */
+    --muted: 232 230 220;        /* sand-200 */
+    --primary: 255 122 102;      /* pulse-500 */
+    --primary-foreground: 255 255 255;
+    --border: 20 20 19 / 0.10;
+  }
+  .dark {
+    --background: 18 18 18;
+    --foreground: 241 245 249;
+    --muted: 45 45 45;
+  }
+  ```
+- [ ] Add Google Fonts link in `index.html`: Playfair Display (400, 700) + Inter (400, 500, 600)
+- [ ] Add `body` base styles: `font-family: Inter`, `color: ink-950`, `background: sand-50`
+- [ ] Add global `max-w-[68ch]` prose class, `leading-[1.75]` for paragraphs
+
+### 1.5 shadcn/ui Setup
+- [ ] Install: `bunx shadcn-ui@latest init` (select JS mode, no TypeScript)
+- [ ] Choose base color: **neutral** with CSS variables enabled
+- [ ] Install core components needed upfront:
+  - `bun shadcn-ui@latest add button`
+  - `bun shadcn-ui@latest add navigation-menu`
+  - `bun shadcn-ui@latest add sheet`
+  - `bun shadcn-ui@latest add accordion`
+  - `bun shadcn-ui@latest add tabs`
+  - `bun shadcn-ui@latest add badge`
+  - `bun shadcn-ui@latest add card`
+  - `bun shadcn-ui@latest add dialog`
+  - `bun shadcn-ui@latest add input`
+  - `bun shadcn-ui@latest add textarea`
+  - `bun shadcn-ui@latest add select`
+  - `bun shadcn-ui@latest add breadcrumb`
+  - `bun shadcn-ui@latest add separator`
+  - `bun shadcn-ui@latest add tooltip`
+
+### 1.6 Motion & Utility Setup
+- [ ] Install: `bun add framer-motion` (for standard reveals)
+- [ ] Install: `bun add gsap` (strictly 1 pinned scene only)
+- [ ] Create `src/lib/motion.js` — exports motion config constants:
+  - `MOTION_LEVELS = { cinematic, standard, reduced }`
+  - `EASING`, `DURATION` tokens
+- [ ] Create `src/lib/useReducedMotion.js` — custom hook:
+  - Read `prefers-reduced-motion` via `matchMedia`
+  - Read/write `localStorage` key `boninfer:reducedMotion`
+  - Expose `{ prefersReduced, setReduced }` 
+- [ ] Create `src/lib/utils.js` — `cn()` helper (clsx + tailwind-merge)
+- [ ] Install: `bun add clsx tailwind-merge`
+
+---
+
+## Phase 2: Routing & Layout
+
+### 2.1 React Router Setup
+- [ ] Install: `bun add react-router-dom`
+- [ ] Create `src/app/Router.jsx` with `createBrowserRouter` or `BrowserRouter`
+- [ ] Define all routes:
+  | Route | Component File |
+  |---|---|
+  | `/` | `pages/Home.jsx` |
+  | `/services` | `pages/Services.jsx` |
+  | `/services/:slug` | `pages/ServiceDetail.jsx` |
+  | `/work` | `pages/Work.jsx` |
+  | `/ai-studio` | `pages/AiStudio.jsx` |
+  | `/ai-studio/opportunity-mapper` | `pages/OpportunityMapper.jsx` |
+  | `/ai-studio/prompt-playbooks` | `pages/PromptPlaybooks.jsx` |
+  | `/governance` | `pages/Governance.jsx` |
+  | `/insights` | `pages/Insights.jsx` |
+  | `/about` | `pages/About.jsx` |
+  | `/contact` | `pages/Contact.jsx` |
+  | `/privacy` | `pages/Privacy.jsx` |
+  | `/terms` | `pages/Terms.jsx` |
+  | `*` | `pages/NotFound.jsx` |
+
+### 2.2 Root Layout
+- [ ] Create `src/app/RootLayout.jsx`:
+  - Renders `<SiteHeader />`, `<main id="main-content">`, `<SiteFooter />`
+  - Includes `<a href="#main-content" className="skip-link">Skip to main content</a>` as first child
+  - Skip link styled: visually hidden until focused (`sr-only focus:not-sr-only`)
+- [ ] Wrap router with providers in `src/main.jsx`:
+  - `MotionProvider` (reduced motion context)
+  - `HelmetProvider` (SEO)
+  - `RouterProvider`
+
+### 2.3 SEO Head Manager
+- [ ] Install: `bun add react-helmet-async`
+- [ ] Create `src/lib/useSeo.js` — helper hook accepting `{ title, description, og, canonical }`
+- [ ] Create `src/lib/seoDefaults.js` — shared defaults:
+  - Site name: `bonInfer Pvt Ltd`
+  - Default description from blueprint
+  - Base OG image path
+- [ ] Apply `useSeo` at the top of every page component
+- [ ] Add structured data JSON-LD:
+  - `Organization` schema in `RootLayout`
+  - `WebSite` schema in `RootLayout`
+  - `BreadcrumbList` in `ServiceDetail`, `AiStudio/*`, `Governance`
+  - `Article` schema in `Insights` posts
+
+### 2.4 Code Splitting
+- [ ] Wrap AI Studio, Governance, Insights, About in `React.lazy()` + `<Suspense>`
+- [ ] Create `src/components/ui/PageLoader.jsx` — spinner/skeleton fallback
+
+---
+
+## Phase 3: Navigation
+
+### 3.1 Site Header Component (`src/components/site/SiteHeader.jsx`)
+- [ ] Sticky header: `position: sticky; top: 0; z-index: 50`
+- [ ] On scroll > 20px: add frosted glass class (`backdrop-blur-md bg-sand-50/80 shadow-sm`)
+- [ ] Implement scroll detection with `useEffect` + `window.addEventListener('scroll', ...)`
+- [ ] Left: bonInfer logo (SVG or text mark)
+- [ ] Center-right: desktop nav links
+- [ ] Far right: two CTA buttons — "Run the Opportunity Mapper" (primary), "Book a scoping call" (secondary)
+
+### 3.2 Desktop Mega Menu (Services)
+- [ ] Use shadcn `NavigationMenu` as the wrapper
+- [ ] Trigger: "Services" nav item
+- [ ] Panel layout (CSS grid, 2 columns):
+  - **Left rail** (4 groups with links):
+    - AI Strategy
+    - AI Systems
+    - AI Experience
+    - AI Governance
+  - **Right column:**
+    - Featured case vignette card
+    - "Start here →" CTA button
+- [ ] Keyboard accessible: arrow keys navigate items, Escape closes panel
+- [ ] Focus trap within open panel
+
+### 3.3 Mobile Navigation
+- [ ] Use shadcn `Sheet` (slide-in drawer from right or left)
+- [ ] Trigger: hamburger button (hidden on `md:`)
+- [ ] Inside sheet: stack all nav items
+- [ ] Services group: shadcn `Accordion` for sub-items
+- [ ] Sheet: aria-label="Mobile navigation", proper focus management on open/close
+
+### 3.4 Reduced Motion Toggle (in Header)
+- [ ] Add a small icon button (e.g., sparkles or eye icon) in header
+- [ ] Toggle calls `setReduced()` from `useReducedMotion` hook
+- [ ] Persist to `localStorage`
+- [ ] aria-label: "Toggle reduced motion"
+- [ ] Show visual indicator of current state
+
+---
+
+## Phase 4: Scrollytelling Homepage (6 Acts)
+
+### 4.1 Act Layout Primitive (`src/components/story/ActLayout.jsx`)
+- [ ] Two-track layout: `narrative` (left, ~45%) + `stage` (right, ~55%)
+- [ ] Props: `id`, `label` (e.g., "Act 2"), `narrative` (JSX), `stage` (JSX)
+- [ ] Mobile: single column, narrative on top, stage below
+- [ ] Each `ActLayout` has `id="act-N"` for deep linking
+
+### 4.2 Act Progress Indicator (`src/components/story/ActProgress.jsx`)
+- [ ] Fixed vertical strip on right or bottom (desktop/mobile)
+- [ ] Dots or chapter numbers: Act 0–6
+- [ ] Click navigates to corresponding `#act-N` (smooth scroll, no JS scroll interception)
+- [ ] IntersectionObserver updates active dot as user scrolls
+- [ ] `history.replaceState(null, '', '#act-N')` on intersection (no page reload)
+- [ ] aria-label each dot: "Go to Act N: [Title]"
+
+### 4.3 IntersectionObserver Deep Linking (`src/lib/useActObserver.js`)
+- [ ] Create a hook that accepts `actIds[]`
+- [ ] Observes all act sections with `threshold: 0.5`
+- [ ] On intersection, calls `history.replaceState` to update URL hash
+- [ ] Returns `activeActId` for progress indicator
+
+### 4.4 Motion Reveal Primitives (`src/components/story/Reveal.jsx`)
+- [ ] Component wraps children with IntersectionObserver
+- [ ] On enter viewport: apply CSS class that triggers `fade-in` + `translate-y` animation
+- [ ] When `prefersReduced` = true: skip animation, show content immediately
+- [ ] Props: `delay`, `direction` (`up` | `left` | `right`)
+
+### 4.5 Act 0 — Hero + "Pick your path" cards
+- [ ] H1: *"AI systems that move businesses."*
+- [ ] Subhead paragraph (from blueprint §4)
+- [ ] Stage visual: calm aurora gradient (CSS radial gradient, no WebGL)
+- [ ] Desktop only: subtle "token stream" animation assembling into H1
+  - Implementation: staggered character reveal with CSS `@keyframes`
+  - When `prefersReduced`: show H1 statically
+- [ ] Three "Pick your path" cards:
+  1. "Run the Opportunity Mapper" → `/ai-studio/opportunity-mapper`
+  2. "See what we've shipped" → `/work`
+  3. "How we handle risk & transparency" → `/governance`
+- [ ] Cards: hover lift effect (`translate-y(-4px) shadow-lg transition`)
+- [ ] Full-viewport hero: `min-h-[100dvh]` (use `dvh` for mobile safety)
+- [ ] CTA buttons in hero: Primary + Secondary (both accessible)
+
+### 4.6 Act 1 — The Friction (Why AI pilots stall)
+- [ ] Narrative: Three pain-point statements (scannable, not paragraphs):
+  - "Pilots don't scale."
+  - "Data is fragmented."
+  - "Risk and compliance are unclear."
+- [ ] Each statement: reveal on scroll with `Reveal` component
+- [ ] Stage: `MetricStrip` component with 3 KPI placeholders:
+  - Time-to-prototype (weeks)
+  - Time-to-production (months)
+  - Accuracy / reliability targets
+- [ ] `MetricStrip` (`src/components/story/MetricStrip.jsx`): flex row, `CardLight` style, number + label
+
+### 4.7 Act 2 — Opportunity Mapper Reveal (Signature Scene)
+- [ ] **GSAP ScrollTrigger pinned scene** (this is the 1 allowed GSAP usage)
+  - Pin the section while narrative scrolls
+  - Stage: mini Opportunity Mapper form appears progressively
+  - Reduced motion fallback: simple CSS fade-in, no pin
+  - Add "Skip this scene" button (absolutely positioned, top-right)
+- [ ] Mini Opportunity Mapper form (5–7 fields, inline):
+  - Industry (select)
+  - Primary workflow pain (text/select)
+  - Data readiness (low/med/high — radio or segmented control)
+  - Risk sensitivity (low/med/high)
+  - Target outcomes (checkboxes: cost/time/revenue/quality)
+  - Deployment constraints (cloud/on-prem/hybrid)
+  - Timeline (select)
+- [ ] On submit: render output cards (mock generator):
+  - Fast wins (2–3 cards)
+  - Platform plays (1–2 cards)
+  - Governance checks (3–5 items)
+  - ROI assumptions (placeholder, editable)
+- [ ] Each output card labeled: badge `AI-generated (draft)` using `GovernanceBadge`
+- [ ] CTA button: "Open full mapper →" → `/ai-studio/opportunity-mapper`
+- [ ] Keyboard: form fully operable via keyboard; GSAP pin releases cleanly on scroll past
+
+### 4.8 Act 3 — The Build (Delivery Pipeline)
+- [ ] Narrative: *"From concept to dependable system—without mystery."*
+- [ ] Stage: interactive pipeline — 5 steps revealed sequentially on scroll:
+  1. Discover & prioritize
+  2. Data readiness + knowledge base (RAG)
+  3. Build agents/workflows
+  4. Reliability: eval, monitoring, guardrails
+  5. Deploy & enable teams
+- [ ] Each step: numbered card, reveals with `Reveal` component (staggered delay)
+- [ ] Active step highlights as user scrolls (IntersectionObserver per step card)
+- [ ] No GSAP here — pure CSS reveals
+
+### 4.9 Act 4 — The Proof (Outcomes)
+- [ ] Three `CaseVignetteCard` components:
+  1. "Support deflection with RAG"
+  2. "Finance reconciliation agent"
+  3. "Policy Q&A + governance logging"
+- [ ] `CaseVignetteCard` (`src/components/story/CaseVignetteCard.jsx`):
+  - Problem → System → Outcome layout (3-column or stacked)
+  - 2–3 KPI badges, each labeled "measured" or "target" (using `GovernanceBadge` variants)
+- [ ] Cards reveal in stagger on scroll
+- [ ] Mobile: horizontal scroll carousel or vertical stack
+
+### 4.10 Act 5 — The Trust (Governance Preview)
+- [ ] Short intro: describe AI Transparency Hub (3–4 lines)
+- [ ] 4 governance pillars shown as icon + label cards:
+  - Govern / Map / Measure / Manage
+- [ ] `GovernanceBadge` examples: "AI-assisted", "Human-reviewed"
+- [ ] CTA: "Read our transparency hub →" → `/governance`
+
+### 4.11 Act 6 — Finale (Contact CTA)
+- [ ] Full-width dark/warm section
+- [ ] H2: *"Ready to ship AI with confidence?"*
+- [ ] Two buttons: "Book a scoping call" + "Email us instead"
+- [ ] Short inline contact form (name, email, message, submit)
+- [ ] Response expectation copy below form
+- [ ] Form: accessible labels, `aria-required`, validation error messages with `role="alert"`
+
+---
+
+## Phase 5: AI Studio
+
+### 5.1 AI Studio Index Page (`src/pages/AiStudio.jsx`)
+- [ ] H1 + subhead
+- [ ] Grid of tool cards: Opportunity Mapper, Prompt Playbooks, Templates
+- [ ] Each card: title, description, CTA button
+- [ ] Primary CTA: "Run the Opportunity Mapper"
+
+### 5.2 Opportunity Mapper (Full Page) (`src/pages/OpportunityMapper.jsx`)
+- [ ] `src/components/studio/OpportunityMapperForm.jsx`:
+  - All 7 fields (same as Act 2 inline form)
+  - shadcn `Select`, `Input`, `Checkbox`, custom radio/segmented group with proper labels
+  - Client-side validation (`required` fields)
+  - Submit button: "Map my opportunities"
+  - Loading state: spinner + "Generating your map…"
+- [ ] `src/components/studio/OpportunityMapperOutput.jsx`:
+  - Renders 4 card groups: Fast wins, Platform plays, Governance checks, ROI assumptions
+  - Each card: title, description, tags
+  - "AI-generated (draft)" badge on all output cards (prominent, not hidden)
+  - "Copy as brief" button: copies formatted plain text to clipboard
+  - Clipboard feedback: toast or button label change ("Copied!")
+- [ ] Mock generator (`src/lib/mapperMock.js`):
+  - Deterministic enough to feel real for demos
+  - Returns structured JS object matching output schema
+- [ ] State: `formData`, `outputData`, `isLoading`, `hasError` — managed with `useState`
+- [ ] Error state: friendly message + retry button
+
+### 5.3 Prompt Playbooks (`src/pages/PromptPlaybooks.jsx`)
+- [ ] Category filter tabs (shadcn `Tabs`): CEO/Leadership, Product, Engineering, Operations, Compliance
+- [ ] `PromptDemo` component (`src/components/studio/PromptDemo.jsx`):
+  - shadcn `Tabs`: "Prompt" / "Output" / "How it works"
+  - Prompt tab: code-style block (monospace, light bg)
+  - Output tab: formatted example output
+  - How it works tab: short checklist ("How to evaluate")
+- [ ] Data: store playbooks in `src/content/playbooks.js` as JS array of objects
+- [ ] Filter playbooks by selected category (client-side filter)
+
+### 5.4 Templates Section (lightweight, within AI Studio)
+- [ ] List 4 templates as downloadable/copyable cards:
+  - AI policy starter kit
+  - Evaluation plan template
+  - RAG readiness checklist
+  - Agent workflow canvas
+- [ ] Each card: title, description, "Copy template" button (clipboard) or link
+
+---
+
+## Phase 6: Governance Hub
+
+### 6.1 Governance Page (`src/pages/Governance.jsx`)
+- [ ] H1: e.g., *"AI Transparency Hub"*; subhead
+- [ ] Structured into 6 sections (each with an `id` for deep linking):
+  1. **Disclosure** — what content is AI-assisted, how it's human-reviewed
+  2. **Data Handling** — what's stored, retention policies, access
+  3. **Model Metadata** — provider/family/version date + limitations placeholder
+  4. **Risk Controls** — 4 pillars: Govern / Map / Measure / Manage
+  5. **Provenance** — note: "Phase 2 — content credential strategy"
+  6. **Security** — high-level controls + security contact email
+- [ ] All content must be readable inline — no "read more" tooltips hiding critical info
+
+### 6.2 Badge System (`src/components/ui/GovernanceBadge.jsx`)
+- [ ] Variants: `ai-assisted` (amber), `human-reviewed` (green), `measured` (blue), `target` (gray)
+- [ ] Uses shadcn `Badge` as base
+- [ ] Icon + short label
+- [ ] Used globally on: Act 2 output, Act 4 KPIs, Governance page, Service detail pages
+
+### 6.3 Risk Controls Section
+- [ ] 4-card grid: Govern / Map / Measure / Manage
+- [ ] Each card: short definition, example control actions listed
+
+---
+
+## Phase 7: Services & Work
+
+### 7.1 Services Grid Page (`src/pages/Services.jsx`)
+- [ ] H1 + subhead: *"Your growth partner in AI strategy, systems, and governance."*
+- [ ] 7 service cards in responsive grid (2 or 3 cols on desktop, 1 col mobile):
+  1. AI Strategy & Transformation Design
+  2. Knowledge AI & Enterprise Search (RAG)
+  3. Agentic Automation & Workflow Orchestration
+  4. AI Product Design (UX for AI)
+  5. MLOps, Reliability & Evaluation Engineering
+  6. Responsible AI, Governance & Compliance
+  7. AI Content Systems & Enablement
+- [ ] `ServiceCard` (`src/components/site/ServiceCard.jsx`):
+  - Icon (SVG or lucide-react icon)
+  - Tagline
+  - 2-line description
+  - "Explore →" link → `/services/:slug`
+  - "Talk to us" secondary link → `/contact`
+- [ ] Service data: `src/content/services.js` — array of objects with `slug`, `title`, `tagline`, `description`, `icon`, `deliverables`, `workflow`, `pitfalls`
+
+### 7.2 Service Detail Template (`src/pages/ServiceDetail.jsx`)
+- [ ] Load service by `params.slug` from `src/content/services.js`
+- [ ] 6 sections:
+  1. Hero: title + 2-line promise
+  2. "What you get": deliverables list
+  3. "How it works": numbered steps
+  4. "Proof": metric/vignette placeholder
+  5. "Risks we reduce": short list (from `pitfalls` field)
+  6. CTA: "Run the Opportunity Mapper" + "Contact us"
+- [ ] Breadcrumb: `Services > [Service Name]` using shadcn `Breadcrumb`
+- [ ] 404 fallback if slug not found: redirect to `/services`
+
+### 7.3 Work Page (`src/pages/Work.jsx`)
+- [ ] H1 + subhead
+- [ ] 2–3 case vignette cards (same `CaseVignetteCard` component as Act 4)
+- [ ] Case data: `src/content/cases.js`
+- [ ] Each case: Problem → System → Outcome + KPIs
+- [ ] CTA at bottom: "Start your story" → `/contact`
+
+### 7.4 Contact Page (`src/pages/Contact.jsx`)
+- [ ] H1: "Let's talk"
+- [ ] Two columns:
+  - Info column: address, email, calendar link ("Book a scoping call")
+  - Form column: Name, Email, Company, Message, Submit
+- [ ] Form fields: shadcn `Input`, `Textarea`, `Button`
+- [ ] Client-side validation + accessible error messages (`role="alert"`, `aria-describedby`)
+- [ ] Spam protection placeholder comment (honeypot field, hidden via CSS only)
+- [ ] Success state: confirmation message
+
+### 7.5 Footer Sitemap (`src/components/site/SiteFooter.jsx`)
+- [ ] Deep footer with 4–5 column grid:
+  - Work
+  - Services (sub-links to all 7)
+  - AI Studio
+  - Governance / Insights
+  - Company (About, Contact, Privacy, Terms)
+- [ ] Logo + tagline in left column
+- [ ] Copyright line
+- [ ] Links to Privacy + Terms
+
+---
+
+## Phase 8: Performance & Accessibility
+
+### 8.1 Image & Media Performance
+- [ ] All `<img>` tags: add `loading="lazy"` for below-fold images
+- [ ] All `<img>` tags: set explicit `width` + `height` attributes or `aspect-ratio` CSS to prevent CLS
+- [ ] No images above fold loaded lazily (hero must be eager)
+- [ ] Avoid heavy WebGL or canvas on mobile (gate with `window.matchMedia('(pointer: coarse)')`)
+
+### 8.2 Code Splitting & Bundle Audit
+- [ ] Lazy-load: AI Studio, Governance, Insights, About, NotFound
+- [ ] Confirm only 1 GSAP import (Act 2) — not spreading GSAP across components
+- [ ] Run `bun run build` and check chunk sizes; if any chunk > 200KB, split further
+- [ ] Use `vite-bundle-visualizer` to inspect: `bun add -d vite-bundle-visualizer`
+
+### 8.3 Core Web Vitals (CWV)
+- [ ] LCP: ensure hero H1 and above-fold image have `fetchpriority="high"` if applicable
+- [ ] CLS: verify all lazy-loaded images have reserved space
+- [ ] INP: avoid long tasks during scroll events; debounce Observer callbacks if needed
+- [ ] FID/INP: avoid blocking main thread in mapper mock generator (use `setTimeout` or `queueMicrotask` if needed)
+
+### 8.4 Accessibility Baseline
+- [ ] Skip link: `<a href="#main-content">Skip to main content</a>` — verify focus and visual visibility
+- [ ] Landmarks: `<header>`, `<main id="main-content">`, `<footer>` — all present
+- [ ] All interactive elements have visible focus ring (`outline: 2px solid pulse-500` or similar)
+- [ ] Mega menu: arrow key navigation, Escape to close, tabIndex management
+- [ ] Tabs (PromptDemo, Playbooks): keyboard: arrow keys switch tabs, Enter/Space activate
+- [ ] Accordion (mobile nav): Enter/Space to toggle, aria-expanded, aria-controls
+- [ ] Forms: every input has a `<label>` (not placeholder-only), error messages with `role="alert"`
+- [ ] Breadcrumb: `nav aria-label="Breadcrumb"` + `aria-current="page"` on last item
+- [ ] All icon-only buttons: `aria-label` describing action
+- [ ] Color contrast: pulse-500 (#ff7a66) on white — verify contrast ratio ≥ 4.5:1; adjust shade if needed
+- [ ] Images: meaningful `alt` text; decorative images use `alt=""`
+
+### 8.5 Reduced Motion System
+- [ ] `Reveal.jsx`: checks `prefersReduced` before applying animation classes
+- [ ] GSAP Act 2 scene: `ScrollTrigger.matchMedia({ "(prefers-reduced-motion: reduce)": ... })` disables pin, uses simple fade
+- [ ] Manual toggle (header): persists to `localStorage`, updates context
+- [ ] Test: enable reduced motion in OS settings, verify no transforms/fades run
+
+### 8.6 SEO Audit
+- [ ] Every page: unique `<title>` + `<meta name="description">`
+- [ ] Every page: Open Graph tags (`og:title`, `og:description`, `og:image`, `og:url`)
+- [ ] Every page: Twitter card tags
+- [ ] Every page: `<link rel="canonical">`
+- [ ] Homepage: `Organization` + `WebSite` JSON-LD
+- [ ] Service detail: `BreadcrumbList` JSON-LD
+- [ ] Insights posts: `Article` JSON-LD
+- [ ] No duplicate H1s per page
+- [ ] `robots.txt` and `sitemap.xml` added to `/public`
+
+### 8.7 QA Checklist (Final)
+- [ ] Lighthouse run: target ≥ 90 Performance, 100 Accessibility, 100 Best Practices, ≥ 90 SEO
+- [ ] Keyboard-only navigation: tab through header, mega menu, tabs, forms, footer — no traps
+- [ ] Reduced motion: toggle on → verify all scenes fall back; toggle off → animations resume
+- [ ] Mobile viewport: test at 375px, 390px, 430px — verify `dvh` hero doesn't clip
+- [ ] CLS check: scroll full homepage, no layout shifts in DevTools CLS metric
+- [ ] Copy: no placeholder text remaining (search for "Lorem", "TODO", "placeholder" in `src/`)
+- [ ] Consistent voice: no buzzwords, workflow shown not promised
+- [ ] Dark mode (if implemented): verify all color tokens update correctly
+
+---
+
+## Recommended Folder Structure
+
+```
+boninfer/
+├── index.html
+├── vite.config.js
+├── tailwind.config.js
+├── postcss.config.js
+├── components.json              # shadcn/ui config
+├── bun.lockb
+├── package.json
+└── src/
+    ├── main.jsx                 # App entry, providers
+    ├── app/
+    │   ├── Router.jsx           # Route definitions
+    │   └── RootLayout.jsx       # Header + main + footer shell
+    ├── pages/
+    │   ├── Home.jsx
+    │   ├── Services.jsx
+    │   ├── ServiceDetail.jsx
+    │   ├── Work.jsx
+    │   ├── AiStudio.jsx
+    │   ├── OpportunityMapper.jsx
+    │   ├── PromptPlaybooks.jsx
+    │   ├── Governance.jsx
+    │   ├── Insights.jsx
+    │   ├── About.jsx
+    │   ├── Contact.jsx
+    │   ├── Privacy.jsx
+    │   ├── Terms.jsx
+    │   └── NotFound.jsx
+    ├── components/
+    │   ├── ui/                  # shadcn/ui generated components
+    │   │   ├── button.jsx
+    │   │   ├── navigation-menu.jsx
+    │   │   ├── sheet.jsx
+    │   │   ├── accordion.jsx
+    │   │   ├── tabs.jsx
+    │   │   ├── badge.jsx
+    │   │   ├── card.jsx
+    │   │   ├── dialog.jsx
+    │   │   ├── input.jsx
+    │   │   ├── textarea.jsx
+    │   │   ├── select.jsx
+    │   │   ├── breadcrumb.jsx
+    │   │   ├── separator.jsx
+    │   │   ├── tooltip.jsx
+    │   │   └── GovernanceBadge.jsx    # custom, extends Badge
+    │   ├── site/                # site-wide layout components
+    │   │   ├── SiteHeader.jsx
+    │   │   ├── MegaMenu.jsx
+    │   │   ├── MobileNav.jsx
+    │   │   ├── SiteFooter.jsx
+    │   │   └── ServiceCard.jsx
+    │   ├── story/               # scrollytelling / Act components
+    │   │   ├── ActLayout.jsx
+    │   │   ├── ActProgress.jsx
+    │   │   ├── Reveal.jsx
+    │   │   ├── MetricStrip.jsx
+    │   │   └── CaseVignetteCard.jsx
+    │   └── studio/              # AI Studio interactive components
+    │       ├── OpportunityMapperForm.jsx
+    │       ├── OpportunityMapperOutput.jsx
+    │       └── PromptDemo.jsx
+    ├── content/                 # static data / copy (JS objects)
+    │   ├── services.js          # 7 service definitions
+    │   ├── cases.js             # 2–3 case vignettes
+    │   ├── playbooks.js         # prompt playbook data by role
+    │   └── governance.js        # governance page content blocks
+    ├── lib/                     # utilities and hooks
+    │   ├── utils.js             # cn() helper
+    │   ├── motion.js            # motion levels, duration tokens
+    │   ├── useReducedMotion.js  # hook: reads OS + localStorage
+    │   ├── useActObserver.js    # IntersectionObserver hook for Acts
+    │   ├── mapperMock.js        # mock opportunity map generator
+    │   └── useSeo.js            # SEO head helper
+    └── styles/
+        └── globals.css          # Tailwind directives + CSS variables + base
+```
+
+---
+
+## Dependencies List
+
+### Core Runtime
+| Package | Purpose |
+|---|---|
+| `react` | UI framework |
+| `react-dom` | DOM renderer |
+| `react-router-dom` | Client-side routing |
+| `react-helmet-async` | Per-page SEO head management |
+| `framer-motion` | Standard scroll reveals + transitions |
+| `gsap` | ⚠️ 1 signature pinned scene only (Act 2) |
+| `clsx` | Conditional class joining |
+| `tailwind-merge` | Tailwind class deduplication |
+| `lucide-react` | Icon set (consistent with shadcn) |
+
+### shadcn/ui (auto-installed via CLI)
+`button`, `navigation-menu`, `sheet`, `accordion`, `tabs`, `badge`, `card`, `dialog`, `input`, `textarea`, `select`, `breadcrumb`, `separator`, `tooltip`
+
+> shadcn/ui internally uses `@radix-ui/*` and `class-variance-authority` — installed automatically.
+
+### Dev Dependencies
+| Package | Purpose |
+|---|---|
+| `vite` | Build tool |
+| `@vitejs/plugin-react` | Vite React plugin |
+| `tailwindcss` | CSS utility framework |
+| `postcss` | CSS processor |
+| `autoprefixer` | Vendor prefixes |
+| `vite-bundle-visualizer` | Bundle size audit |
+
+### Explicitly Excluded
+- ❌ TypeScript (`typescript`, `@types/*`) — JS only
+- ❌ Three.js / WebGL libraries — no heavy 3D
+- ❌ Redux / Zustand — `useState` + Context is sufficient
+- ❌ Axios — native `fetch` only
+- ❌ Styled-components / Emotion — Tailwind + CSS vars only
+- ❌ Next.js — Vite only
+- ❌ React Query — no server state needed at MVP
+
+---
+
+## Risk & Complexity Notes
+
+### 🔴 High Complexity
+
+| Area | Risk | Mitigation |
+|---|---|---|
+| **GSAP ScrollTrigger (Act 2)** | Pin + release must feel native, not jarring; breaks in reduced motion if not handled | Implement reduced motion fallback first; test GSAP last; add "Skip scene" button |
+| **Mega Menu keyboard accessibility** | Focus trap, Escape behavior, arrow key nav are complex in custom menus | Use shadcn `NavigationMenu` as base — Radix handles a11y primitives; test thoroughly |
+| **IntersectionObserver + hash sync** | Race conditions if multiple acts intersect simultaneously; hash changes can cause scroll jumps | Use `history.replaceState` (not `location.hash =`); debounce observer callback |
+| **Act 2 mini mapper + GSAP pin together** | Form interaction inside a pinned scene is fragile | Ensure pin releases before/after form interaction; test at multiple viewport sizes |
+
+### 🟡 Medium Complexity
+
+| Area | Risk | Mitigation |
+|---|---|---|
+| **dvh units in Hero** | `100dvh` not supported in all older browsers | Add `100vh` fallback: `min-height: 100vh; min-height: 100dvh` |
+| **pulse-500 color contrast** | `#ff7a66` on white = ~2.9:1 — fails WCAG AA for normal text | Use pulse-500 for large text/UI only; use `pulse-700` or darker shade for text on light bg |
+| **Opportunity Mapper mock generator** | Output must feel plausible and deterministic enough for demos | Map inputs to pre-written output templates by industry/pain combination |
+| **Code splitting lazy boundaries** | React.lazy + Suspense with router: error boundaries needed | Wrap each lazy route in `<ErrorBoundary>` + `<Suspense>` |
+| **Service slugs** | Slug in URL (`/services/knowledge-ai-rag`) must match exactly | Derive slug from service name in data file; use consistent kebab-case slugging helper |
+
+### 🟢 Performance Risks
+
+| Risk | Priority | Note |
+|---|---|---|
+| GSAP bundle size (~100KB) | Medium | Imported only in Act 2 component; lazy import if possible |
+| Framer Motion full bundle | Medium | Import only needed components: `motion`, `AnimatePresence` — not entire lib |
+| No CLS on image-heavy cards | High | Always set `width`/`height` or `aspect-ratio` on `<img>` and video containers |
+| Hero LCP | High | H1 text is LCP candidate — ensure font loads early (preconnect to Google Fonts) |
+
+### ♿ Accessibility Risks
+
+| Risk | Priority | Note |
+|---|---|---|
+| Reduced motion not covering all animations | Critical | Every animation site must be gated by `useReducedMotion` hook |
+| Form error announcements | High | Use `role="alert"` or `aria-live="polite"` on error containers |
+| Mega menu focus trap escape | High | Pressing Escape must return focus to the "Services" trigger button |
+| Icon-only buttons without labels | Medium | Audit: any button using only an SVG icon needs `aria-label` |
+| Color-only state indicators | Medium | Active nav link must not rely solely on color — add underline, bold, or other indicator |
